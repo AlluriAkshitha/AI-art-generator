@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Art Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="app-container">
+        <h1>AI Art Studio</h1>
+        <p>Enter a description to generate an image</p>
+
+        <div class="input-box">
+            <input type="text" id="prompt" placeholder="A futuristic city in the clouds..." autocomplete="off">
+            <button id="gen-btn" onclick="generateArt()">Generate</button>
+        </div>
+
+        <div id="loader" class="hidden">✨ Weaving your art...</div>
+        <div id="error-msg" class="error hidden"></div>
+
+        <div class="display-area">
+            <img id="output-image" src="" alt="" class="hidden">
+        </div>
+    </div>
+
+    <script>
+        async function generateArt() {
+            const prompt = document.getElementById('prompt').value;
+            const btn = document.getElementById('gen-btn');
+            const loader = document.getElementById('loader');
+            const error = document.getElementById('error-msg');
+            const img = document.getElementById('output-image');
+
+            if (!prompt) return;
+
+            // UI State: Loading
+            btn.disabled = true;
+            loader.classList.remove('hidden');
+            error.classList.add('hidden');
+            img.classList.add('hidden');
+
+            try {
+                const formData = new FormData();
+                formData.append('prompt', prompt);
+
+                const response = await fetch('/generate', { method: 'POST', body: formData });
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+
+                const blob = await response.blob();
+                img.src = URL.createObjectURL(blob);
+                img.classList.remove('hidden');
+            } catch (err) {
+                error.innerText = "Error: " + err.message;
+                error.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
